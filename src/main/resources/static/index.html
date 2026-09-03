@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Employee Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+        .card { border: 1px solid #ccc; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 10px; }
+        label { display: block; font-weight: bold; margin-bottom: 4px; }
+        input { width: 280px; padding: 6px; box-sizing: border-box; }
+        button { padding: 8px 14px; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-post { background-color: #28a745; }
+        .btn-get { background-color: #17a2b8; }
+        .btn-put { background-color: #ffc107; color: black; }
+        .btn-delete { background-color: #dc3545; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+
+<h2>Employee Management Dashboard</h2>
+
+<!-- CREATE (POST) -->
+<div class="card">
+    <h3>1. Add Employee (POST)</h3>
+    <form id="createForm">
+        <div class="form-group"><label>ID:</label><input type="text" id="cId" required></div>
+        <div class="form-group"><label>Name:</label><input type="text" id="cName" required></div>
+        <div class="form-group"><label>Email:</label><input type="email" id="cEmail" required></div>
+        <div class="form-group"><label>Location:</label><input type="text" id="cLoc" required></div>
+        <button type="submit" class="btn-post">Save Employee</button>
+    </form>
+</div>
+
+<!-- READ ALL (GET) -->
+<div class="card">
+    <h3>2. Display All Employees (GET)</h3>
+    <button id="fetchAll" class="btn-get">Load Employees</button>
+    <table id="empTable">
+        <thead>
+        <tr><th>ID</th><th>Name</th><th>Email</th><th>Location</th></tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- UPDATE (PUT) -->
+<div class="card">
+    <h3>3. Update Employee (PUT)</h3>
+    <form id="updateForm">
+        <div class="form-group"><label>Employee ID to Update:</label><input type="text" id="uId" required></div>
+        <div class="form-group"><label>New Name:</label><input type="text" id="uName" required></div>
+        <div class="form-group"><label>New Email:</label><input type="email" id="uEmail" required></div>
+        <div class="form-group"><label>New Location:</label><input type="text" id="uLoc" required></div>
+        <button type="submit" class="btn-put">Update Employee</button>
+    </form>
+</div>
+
+<!-- DELETE (DELETE) -->
+<div class="card">
+    <h3>4. Delete Employee (DELETE)</h3>
+    <div class="form-group"><label>Employee ID to Delete:</label><input type="text" id="dId"></div>
+    <button id="deleteBtn" class="btn-delete">Delete Employee</button>
+</div>
+
+<script>
+    // POST Request
+    document.getElementById('createForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+            employeeId: document.getElementById('cId').value,
+            employeeName: document.getElementById('cName').value,
+            employeeEmail: document.getElementById('cEmail').value,
+            location: document.getElementById('cLoc').value
+        };
+        const res = await fetch('/employees', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        alert(res.ok ? 'Saved successfully!' : 'Save failed.');
+        if (res.ok) e.target.reset();
+    });
+
+    // GET All Request
+    document.getElementById('fetchAll').addEventListener('click', async () => {
+        const res = await fetch('/employees/displayAll');
+        const data = await res.json();
+        const tbody = document.querySelector('#empTable tbody');
+        tbody.innerHTML = data.map(e => `
+                <tr>
+                    <td>${e.employeeId || ''}</td>
+                    <td>${e.employeeName || ''}</td>
+                    <td>${e.employeeEmail || ''}</td>
+                    <td>${e.location || ''}</td>
+                </tr>
+            `).join('');
+    });
+
+    // PUT Request
+    document.getElementById('updateForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('uId').value;
+        const payload = {
+            employeeName: document.getElementById('uName').value,
+            employeeEmail: document.getElementById('uEmail').value,
+            location: document.getElementById('uLoc').value
+        };
+        const res = await fetch(`/employees/update/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        alert(res.ok ? 'Updated successfully!' : 'Update failed.');
+        if (res.ok) e.target.reset();
+    });
+
+    // DELETE Request
+    document.getElementById('deleteBtn').addEventListener('click', async () => {
+        const id = document.getElementById('dId').value;
+        if (!id) return alert('Enter an ID to delete.');
+        const res = await fetch(`/employees/delete/${id}`, { method: 'DELETE' });
+        alert(res.ok ? 'Deleted successfully!' : 'Delete failed.');
+        if (res.ok) document.getElementById('dId').value = '';
+    });
+</script>
+</body>
+</html>
